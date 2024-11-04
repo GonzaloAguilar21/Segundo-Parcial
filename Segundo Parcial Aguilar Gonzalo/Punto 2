@@ -1,0 +1,111 @@
+import heapq
+class Grafo:
+    def __init__(self):
+        self.vertices = {}
+    
+    def agregar_personaje(self, nombre):
+        if nombre not in self.vertices:
+            self.vertices[nombre] = {}
+    
+    def agregar_relacion(self, personaje1, personaje2, episodios):
+        self.agregar_personaje(personaje1)
+        self.agregar_personaje(personaje2)
+        self.vertices[personaje1][personaje2] = episodios
+        self.vertices[personaje2][personaje1] = episodios
+
+    def obtener_relaciones(self):
+        relaciones = []
+        for personaje1 in self.vertices:
+            for personaje2, episodios in self.vertices[personaje1].items():
+                if (personaje2, personaje1) not in relaciones:
+                    relaciones.append((personaje1, personaje2, episodios))
+        return relaciones
+    
+    def obtener_arbol_expansion_minimo(self):
+        def find(parent, i):
+            if parent[i] == i:
+                return i
+            return find(parent, parent[i])
+        
+        def union(parent, rank, x, y):
+            xroot = find(parent, x)
+            yroot = find(parent, y)
+            if rank[xroot] < rank[yroot]:
+                parent[xroot] = yroot
+            elif rank[xroot] > rank[yroot]:
+                parent[yroot] = xroot
+            else:
+                parent[yroot] = xroot
+                rank[xroot] += 1
+        
+        personajes = list(self.vertices.keys())
+        aristas = self.obtener_relaciones()
+        aristas.sort(key=lambda x: x[2])  #Ordenar aristas por peso
+        
+        parent = {}
+        rank = {}
+        for personaje in personajes:
+            parent[personaje] = personaje
+            rank[personaje] = 0
+        
+        mst = []
+        for personaje1, personaje2, episodios in aristas:
+            x = find(parent, personaje1)
+            y = find(parent, personaje2)
+            if x != y:
+                mst.append((personaje1, personaje2, episodios))
+                union(parent, rank, x, y)
+        
+        # Verificar si Yoda está en el MST
+        contiene_yoda = any("Yoda" in arista for arista in mst)
+        return mst, contiene_yoda
+    
+    def max_episodios_compartidos(self):
+        max_episodios = 0
+        personajes_max = ()
+        for personaje1 in self.vertices:
+            for personaje2, episodios in self.vertices[personaje1].items():
+                if episodios > max_episodios:
+                    max_episodios = episodios
+                    personajes_max = (personaje1, personaje2)
+        return max_episodios, personajes_max
+    
+    def mostrar_grafo(self):
+        for personaje, relaciones in self.vertices.items():
+            print(f"{personaje}: {relaciones}")
+
+# Crear el grafo y cargar los personajes
+grafo = Grafo()
+personajes = [
+    "Luke Skywalker", "Darth Vader", "Yoda", "Boba Fett", "C-3PO", "Leia",
+    "Rey", "Kylo Ren", "Chewbacca", "Han Solo", "R2-D2", "BB-8"
+]
+
+for personaje in personajes:
+    grafo.agregar_personaje(personaje)
+
+# Agregar relaciones
+grafo.agregar_relacion("Luke Skywalker", "Darth Vader", 4)
+grafo.agregar_relacion("Luke Skywalker", "Leia", 5)
+grafo.agregar_relacion("Yoda", "Luke Skywalker", 3)
+grafo.agregar_relacion("Yoda", "Darth Vader", 2)
+grafo.agregar_relacion("Han Solo", "Chewbacca", 6)
+grafo.agregar_relacion("C-3PO", "R2-D2", 7)
+grafo.agregar_relacion("Rey", "Kylo Ren", 3)
+grafo.agregar_relacion("Leia", "Han Solo", 4)
+grafo.agregar_relacion("BB-8", "Rey", 2)
+# Agrega más relaciones según sea necesario
+
+# a) Mostrar el grafo
+print("Grafo de personajes y relaciones:")
+grafo.mostrar_grafo()
+
+# b) Obtener el árbol de expansión mínimo y verificar si contiene a Yoda
+mst, contiene_yoda = grafo.obtener_arbol_expansion_minimo()
+print("\nÁrbol de expansión mínimo (MST):", mst)
+print("¿El MST contiene a Yoda?", "Sí" if contiene_yoda else "No")
+
+# c) Determinar el número máximo de episodios compartidos y los personajes involucrados
+max_episodios, personajes_max = grafo.max_episodios_compartidos()
+print("\nNúmero máximo de episodios compartidos:", max_episodios)
+print("Personajes que más episodios compartieron:", personajes_max)

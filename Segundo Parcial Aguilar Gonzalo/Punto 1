@@ -1,0 +1,148 @@
+class Pokemon:
+    def __init__(self, nombre, numero, tipos):
+        self.nombre = nombre
+        self.numero = numero
+        self.tipos = tipos
+
+    def __repr__(self):
+        return f"Pokemon(nombre='{self.nombre}', numero={self.numero}, tipos={self.tipos})"
+
+class BinarySearchTree:
+    def __init__(self, key):
+        self.key = key
+        self.left = None
+        self.right = None
+        self.data = None
+
+    def insert(self, pokemon):
+        key_value = getattr(pokemon, self.key)
+        
+        if self.data is None:
+            self.data = pokemon
+        elif key_value < getattr(self.data, self.key):
+            if self.left is None:
+                self.left = BinarySearchTree(self.key)
+            self.left.insert(pokemon)
+        else:
+            if self.right is None:
+                self.right = BinarySearchTree(self.key)
+            self.right.insert(pokemon)
+
+    def search_by_prefix(self, prefix):
+        results = []
+        if self.data and self.data.nombre.lower().startswith(prefix.lower()):
+            results.append(self.data)
+        if self.left:
+            results.extend(self.left.search_by_prefix(prefix))
+        if self.right:
+            results.extend(self.right.search_by_prefix(prefix))
+        return results
+
+    def inorder(self):
+        results = []
+        if self.left:
+            results.extend(self.left.inorder())
+        if self.data:
+            results.append(self.data)
+        if self.right:
+            results.extend(self.right.inorder())
+        return results
+
+    def level_order(self):
+        queue = [self]
+        results = []
+        while queue:
+            node = queue.pop(0)
+            if node and node.data:
+                results.append(node.data)
+                queue.append(node.left)
+                queue.append(node.right)
+        return results
+
+    def search_by_type(self, tipo):
+        results = []
+        if self.data and tipo in self.data.tipos:
+            results.append(self.data)
+        if self.left:
+            results.extend(self.left.search_by_type(tipo))
+        if self.right:
+            results.extend(self.right.search_by_type(tipo))
+        return results
+
+def search_by_name_prefix(prefix):
+    return nombre_tree.search_by_prefix(prefix)
+
+def search_by_number(numero):
+    def search(node, numero):
+        if not node:
+            return None
+        if node.data.numero == numero:
+            return node.data
+        elif numero < node.data.numero:
+            return search(node.left, numero)
+        else:
+            return search(node.right, numero)
+    
+    return search(numero_tree, numero)
+
+def list_by_type(tipo):
+    return tipo_tree.search_by_type(tipo)
+
+def list_in_order_by_number():
+    return numero_tree.inorder()
+
+def list_in_order_by_name():
+    return nombre_tree.inorder()
+
+def list_by_level_name():
+    return nombre_tree.level_order()
+
+def get_pokemon_data(names):
+    results = []
+    for name in names:
+        results.extend(nombre_tree.search_by_prefix(name))
+    return results
+
+def count_pokemon_by_type(tipo):
+    return len(tipo_tree.search_by_type(tipo))
+
+# Ejemplo de lista de Pokémon
+pokemons = [
+    Pokemon("Bulbasaur", 1, ["planta", "veneno"]),
+    Pokemon("Charmander", 4, ["fuego"]),
+    Pokemon("Squirtle", 7, ["agua"]),
+    Pokemon("Jolteon", 135, ["eléctrico"]),
+    Pokemon("Lycanroc", 745, ["roca"]),
+    Pokemon("Tyrantrum", 697, ["roca", "dragón"]),
+]
+
+# Crear los tres árboles
+nombre_tree = BinarySearchTree("nombre")
+numero_tree = BinarySearchTree("numero")
+tipo_tree = BinarySearchTree("tipos")
+
+for p in pokemons:
+    nombre_tree.insert(p)
+    numero_tree.insert(p)
+    tipo_tree.insert(p)
+
+
+# b) Búsqueda por nombre
+print("Busqueda: 'bul':", search_by_name_prefix("bul"))
+
+# c) Listar Pokémon de tipo agua
+print("Pokémon de tipo 'agua':", list_by_type("agua"))
+
+# d) Listado en orden por número y por nombre
+print("Pokémon en orden ascendente por número:", list_in_order_by_number())
+print("Pokémon en orden ascendente por nombre:", list_in_order_by_name())
+
+# Listado por nivel en el árbol de nombres
+print("Pokémon por nivel en el árbol de nombres:", list_by_level_name())
+
+# e) Datos de Pokémon específicos
+print("Datos de Pokémon específicos (Jolteon, Lycanroc, Tyrantrum):", get_pokemon_data(["Jolteon", "Lycanroc", "Tyrantrum"]))
+
+# f) Contar Pokémon tipo eléctrico y acero
+print("Cantidad de Pokémon tipo eléctrico:", count_pokemon_by_type("eléctrico"))
+print("Cantidad de Pokémon tipo acero:", count_pokemon_by_type("acero"))
